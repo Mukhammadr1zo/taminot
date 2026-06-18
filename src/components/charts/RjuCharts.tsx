@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Card from '../Card'
 import EChart from '../EChart'
 import { useChartCtx } from '../../lib/useChartCtx'
@@ -50,7 +50,16 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
   const { c, t, metric, openDrill } = useChartCtx()
   const nomDim = dataset.meta.dims.nomenk
   const rodDim = dataset.meta.dims.rod_vag
+  const instRef = useRef<any>(null)
+  const [rk, setRk] = useState(0)
+  // chap tugma -> manba ma'lumotlari
   const onClick = (p: any) => { const cr = p?.data?.crit; if (cr) openDrill(p.data.lbl || p.name, cr) }
+  // o'ng tugma -> aynan shu bo'lakni kattalashtirish (zoom)
+  const onCtx = (p: any) => {
+    p?.event?.event?.preventDefault?.()
+    const id = p?.data?.id
+    if (id && instRef.current) instRef.current.dispatchAction({ type: 'sunburstRootToNode', seriesIndex: 0, targetNodeId: id })
+  }
 
   const option = useMemo(() => {
     // rju -> nomenk -> rodVag daraxti
@@ -75,6 +84,7 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
         const top = noms.slice(0, 6)
         const rest = noms.slice(6)
         const children: any[] = top.map((n) => ({
+          id: `r${rju}n${n.nom}`,
           name: truncate(nomDim[n.nom], 16),
           lbl: `${rjuName(rju)} → ${nomDim[n.nom]}`,
           value: Math.round(n.total),
@@ -82,6 +92,7 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
           children: Array.from(n.rm.entries())
             .sort((a, b) => b[1] - a[1])
             .map(([rod, v]) => ({
+              id: `r${rju}n${n.nom}v${rod}`,
               name: rodDim[rod],
               lbl: `${rjuName(rju)} → ${nomDim[n.nom]} → ${rodDim[rod]}`,
               value: Math.round(v),
@@ -89,9 +100,9 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
             })),
         }))
         if (rest.length) {
-          children.push({ name: t('lbl.others'), lbl: `${rjuName(rju)} — ${t('lbl.others')}`, value: Math.round(rest.reduce((s, n) => s + n.total, 0)), crit: { rju }, itemStyle: { color: '#9aa6bd' } })
+          children.push({ id: `r${rju}other`, name: t('lbl.others'), lbl: `${rjuName(rju)} — ${t('lbl.others')}`, value: Math.round(rest.reduce((s, n) => s + n.total, 0)), crit: { rju }, itemStyle: { color: '#9aa6bd' } })
         }
-        return { name: rjuName(rju), lbl: rjuName(rju), crit: { rju }, itemStyle: { color: colorAt(i) }, children }
+        return { id: `r${rju}`, name: rjuName(rju), lbl: rjuName(rju), crit: { rju }, itemStyle: { color: colorAt(i) }, children }
       })
 
     return {
@@ -112,9 +123,14 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
   }, [agg, c, t, metric, nomDim, rodDim])
 
   return (
-    <Card title={t('chart.sunburst')} subtitle={`${metric === 'tonna' ? t('metric.tonna') : t('metric.vagon')} · ${t('src.hint')}`}>
-      <EChart option={option} height={400} downloadName="rju-sunburst" title={t('chart.sunburst')}
-        onEvents={{ click: onClick }} onSource={() => openDrill(t('chart.sunburst'), {})} />
+    <Card
+      title={t('chart.sunburst')}
+      subtitle={`${metric === 'tonna' ? t('metric.tonna') : t('metric.vagon')} · ${t('src.sunburstHint')}`}
+      right={<button onClick={() => setRk((k) => k + 1)} title={t('src.reset')} className="rounded-md border border-[var(--border)] px-2 py-1 text-[11px] muted hover:border-brand-400 hover:text-brand-500">↺</button>}
+    >
+      <EChart key={rk} option={option} height={400} downloadName="rju-sunburst" title={t('chart.sunburst')}
+        onEvents={{ click: onClick, contextmenu: onCtx }} onSource={() => openDrill(t('chart.sunburst'), {})}
+        onInit={(inst) => { instRef.current = inst }} />
     </Card>
   )
 }

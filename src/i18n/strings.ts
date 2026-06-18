@@ -119,6 +119,8 @@ export const STR: S = {
   'src.title': { uz: 'Manba ma\'lumotlari', ru: 'Исходные данные' },
   'src.filterBy': { uz: '⚲ Shu tanlov bo\'yicha filtrlash', ru: '⚲ Фильтровать по выбору' },
   'src.hint': { uz: 'Bo\'lakni bosing — manba ma\'lumotlari', ru: 'Нажмите на сегмент — исходные данные' },
+  'src.sunburstHint': { uz: 'Chap tugma — ma\'lumot · O\'ng tugma — kattalashtirish', ru: 'ЛКМ — данные · ПКМ — увеличить' },
+  'src.reset': { uz: 'Boshlang\'ich holatga (qaytadan)', ru: 'Сбросить (заново)' },
 
   'note.tonnaVagon': {
     uz: 'Eslatma: vagon bajarilishi yuqori (~90–94%), tonna bajarilishi past — chunki ko\'p arizada reja=0 yoki ortig\'i bilan bajarilgan. Ikkala metrikani ham ko\'ring.',

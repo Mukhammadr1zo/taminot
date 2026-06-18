@@ -11,11 +11,14 @@ interface Props {
   title?: string
   /** ▦ tugmasi: butun grafik manba ma'lumotlarini ochish */
   onSource?: () => void
+  /** ECharts instansiyasi tayyor bo'lganda (sunburst zoom uchun) */
+  onInit?: (inst: any) => void
 }
 
-export default function EChart({ option, height = 320, onEvents, downloadName = 'chart', title = '', onSource }: Props) {
+export default function EChart({ option, height = 320, onEvents, downloadName = 'chart', title = '', onSource, onInit }: Props) {
   const ref = useRef<ReactECharts>(null)
   const [fs, setFs] = useState(false)
+  const hasCtx = !!onEvents?.contextmenu
 
   const download = useCallback(() => {
     const inst = ref.current?.getEchartsInstance()
@@ -30,7 +33,7 @@ export default function EChart({ option, height = 320, onEvents, downloadName = 
   const btn = 'rounded-md border border-[var(--border)] bg-[var(--panel-2)] px-1.5 py-0.5 text-[10px] muted opacity-55 hover:opacity-100 hover:text-brand-500'
 
   return (
-    <div className="relative" style={{ height }}>
+    <div className="relative" style={{ height }} onContextMenu={hasCtx ? (e) => e.preventDefault() : undefined}>
       <div className="absolute right-1 top-1 z-10 flex gap-1">
         {onSource && <button onClick={onSource} title="Manba ma'lumotlari / Исходные данные" className={btn}>▦</button>}
         <button onClick={() => setFs(true)} title="Fullscreen" className={btn}>⤢</button>
@@ -44,6 +47,7 @@ export default function EChart({ option, height = 320, onEvents, downloadName = 
         notMerge={true}
         lazyUpdate={true}
         onEvents={onEvents}
+        onChartReady={onInit}
       />
 
       <Modal open={fs} onClose={() => setFs(false)} title={title || downloadName}>
