@@ -3,7 +3,7 @@ import Card from '../Card'
 import EChart from '../EChart'
 import { useChartCtx } from '../../lib/useChartCtx'
 import { gm } from '../../lib/aggregate'
-import { fmtShort, fmt1, truncate, pct } from '../../lib/format'
+import { fmtShort, fmtVal, fmt1, truncate, pct } from '../../lib/format'
 import { tooltipBase, axisLabel, gridBase, legendBase } from '../../lib/echartsBase'
 import { PLAN_COLOR, DONE_COLOR, colorAt } from '../../lib/palette'
 import type { AggResult, Dataset } from '../../types'
@@ -13,9 +13,10 @@ function rjuName(k: number): string {
 }
 
 export function RjuBar({ agg }: { agg: AggResult }) {
-  const { c, t, metric, isTonna } = useChartCtx()
+  const { c, t, metric, isTonna, openDrill } = useChartCtx()
+  const rows = useMemo(() => [...agg.byRju].sort((a, b) => (a.key as number) - (b.key as number)), [agg])
+  const onClick = (p: any) => { const g = rows[p.dataIndex]; if (g) openDrill(rjuName(g.key as number), { rju: g.key as number }) }
   const option = useMemo(() => {
-    const rows = [...agg.byRju].sort((a, b) => (a.key as number) - (b.key as number))
     const cats = rows.map((g) => rjuName(g.key as number))
     const plan = rows.map((g) => Math.round(gm(g, metric).plan))
     const done = rows.map((g) => Math.round(gm(g, metric).done))
@@ -31,23 +32,25 @@ export function RjuBar({ agg }: { agg: AggResult }) {
       ],
       series: [
         { name: t('lbl.plan'), type: 'bar', data: plan, itemStyle: { color: PLAN_COLOR, borderRadius: [3, 3, 0, 0] }, barMaxWidth: 28 },
-        { name: t('lbl.done'), type: 'bar', data: done, itemStyle: { color: DONE_COLOR, borderRadius: [3, 3, 0, 0] }, barMaxWidth: 28, label: { show: true, position: 'top', color: c.text, fontSize: 9, formatter: (p: any) => fmtShort(p.value) } },
+        { name: t('lbl.done'), type: 'bar', data: done, itemStyle: { color: DONE_COLOR, borderRadius: [3, 3, 0, 0] }, barMaxWidth: 28, label: { show: true, position: 'top', color: c.text, fontSize: 9, formatter: (p: any) => fmtVal(p.value, metric) } },
         { name: t('lbl.fulfill'), type: 'line', yAxisIndex: 1, data: fp, smooth: true, symbolSize: 6, lineStyle: { color: '#f5a524', width: 2.5 }, itemStyle: { color: '#f5a524' }, label: { show: true, fontSize: 9, color: '#f5a524', formatter: '{c}%' } },
       ],
     }
-  }, [agg, c, t, metric, isTonna])
+  }, [rows, c, t, metric, isTonna])
 
   return (
-    <Card title={t('chart.byRju')} subtitle={isTonna ? t('metric.tonna') : t('metric.vagon')}>
-      <EChart option={option} height={320} downloadName="rju" />
+    <Card title={t('chart.byRju')} subtitle={`${isTonna ? t('metric.tonna') : t('metric.vagon')} · ${t('src.hint')}`}>
+      <EChart option={option} height={320} downloadName="rju" title={t('chart.byRju')}
+        onEvents={{ click: onClick }} onSource={() => openDrill(t('chart.byRju'), {})} />
     </Card>
   )
 }
 
 export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset }) {
-  const { c, t, metric } = useChartCtx()
+  const { c, t, metric, openDrill } = useChartCtx()
   const nomDim = dataset.meta.dims.nomenk
   const rodDim = dataset.meta.dims.rod_vag
+  const onClick = (p: any) => { const cr = p?.data?.crit; if (cr) openDrill(p.data.lbl || p.name, cr) }
 
   const option = useMemo(() => {
     // rju -> nomenk -> rodVag daraxti
@@ -65,33 +68,53 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
     const data = Array.from(rjuMap.entries())
       .sort((a, b) => a[0] - b[0])
       .map(([rju, nm], i) => {
-        const topNom = Array.from(nm.entries())
+        const noms = Array.from(nm.entries())
           .map(([nom, rm]) => ({ nom, total: Array.from(rm.values()).reduce((s, v) => s + v, 0), rm }))
           .sort((a, b) => b.total - a.total)
-        return {
-          name: rjuName(rju),
-          itemStyle: { color: colorAt(i) },
-          children: topNom.slice(0, 8).map((n) => ({
-            name: truncate(nomDim[n.nom], 18),
-            children: Array.from(n.rm.entries()).map(([rod, v]) => ({ name: rodDim[rod], value: Math.round(v) })),
-          })),
+        // tartibsizlikni kamaytirish: top-6 nomenk + "boshqalar"
+        const top = noms.slice(0, 6)
+        const rest = noms.slice(6)
+        const children: any[] = top.map((n) => ({
+          name: truncate(nomDim[n.nom], 16),
+          lbl: `${rjuName(rju)} → ${nomDim[n.nom]}`,
+          value: Math.round(n.total),
+          crit: { rju, nomenk: n.nom },
+          children: Array.from(n.rm.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([rod, v]) => ({
+              name: rodDim[rod],
+              lbl: `${rjuName(rju)} → ${nomDim[n.nom]} → ${rodDim[rod]}`,
+              value: Math.round(v),
+              crit: { rju, nomenk: n.nom, rod_vag: rod },
+            })),
+        }))
+        if (rest.length) {
+          children.push({ name: t('lbl.others'), lbl: `${rjuName(rju)} — ${t('lbl.others')}`, value: Math.round(rest.reduce((s, n) => s + n.total, 0)), crit: { rju }, itemStyle: { color: '#9aa6bd' } })
         }
+        return { name: rjuName(rju), lbl: rjuName(rju), crit: { rju }, itemStyle: { color: colorAt(i) }, children }
       })
+
     return {
-      tooltip: { ...tooltipBase(c), formatter: (p: any) => `<b>${p.name}</b><br/>${fmtShort(p.value)}` },
+      tooltip: { ...tooltipBase(c), formatter: (p: any) => `<b>${p.data?.lbl || p.name}</b><br/>${fmtVal(p.value, metric)}` },
       series: [{
-        type: 'sunburst', radius: ['12%', '95%'], center: ['50%', '50%'],
-        data,
-        label: { show: true, color: '#fff', fontSize: 9, minAngle: 8 },
-        itemStyle: { borderColor: c.tooltipBg, borderWidth: 1.5 },
-        levels: [{}, { r0: '12%', r: '45%', label: { rotate: 'tangential' } }, { r0: '45%', r: '74%' }, { r0: '74%', r: '95%', label: { rotate: 'radial', fontSize: 8 } }],
+        type: 'sunburst', radius: ['12%', '92%'], center: ['50%', '50%'],
+        data, nodeClick: false,
+        itemStyle: { borderColor: c.tooltipBg, borderWidth: 2 },
+        label: { color: '#fff', fontSize: 10, overflow: 'truncate', minAngle: 6 },
+        levels: [
+          {},
+          { r0: '12%', r: '44%', label: { rotate: 'tangential', fontSize: 11, minAngle: 5 } },
+          { r0: '44%', r: '72%', label: { align: 'right', minAngle: 10, overflow: 'truncate', width: 64 } },
+          { r0: '72%', r: '92%', label: { rotate: 'radial', fontSize: 8, minAngle: 5, overflow: 'truncate' }, itemStyle: { opacity: 0.85 } },
+        ],
       }],
     }
-  }, [agg, c, metric, nomDim, rodDim])
+  }, [agg, c, t, metric, nomDim, rodDim])
 
   return (
-    <Card title={t('chart.sunburst')} subtitle={t('lbl.done')}>
-      <EChart option={option} height={400} downloadName="rju-sunburst" />
+    <Card title={t('chart.sunburst')} subtitle={`${metric === 'tonna' ? t('metric.tonna') : t('metric.vagon')} · ${t('src.hint')}`}>
+      <EChart option={option} height={400} downloadName="rju-sunburst" title={t('chart.sunburst')}
+        onEvents={{ click: onClick }} onSource={() => openDrill(t('chart.sunburst'), {})} />
     </Card>
   )
 }

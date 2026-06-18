@@ -2,14 +2,14 @@ import { useMemo } from 'react'
 import Card from '../Card'
 import EChart from '../EChart'
 import { useChartCtx } from '../../lib/useChartCtx'
-import { fmtInt, fmtShort } from '../../lib/format'
+import { fmtInt, fmtShort, fmtVal } from '../../lib/format'
 import { tooltipBase, axisLabel, gridBase } from '../../lib/echartsBase'
 import type { AggResult } from '../../types'
 
 const BIN_COLORS = ['#9aa6bd', '#eb3b5a', '#ff7a45', '#f5a524', '#a0d911', '#52c41a', '#22c1a4']
 
 export function FulfillHistogram({ agg }: { agg: AggResult }) {
-  const { c, t, metric, isTonna } = useChartCtx()
+  const { c, t, metric, isTonna, openDrill } = useChartCtx()
   const option = useMemo(() => {
     const bins = isTonna ? agg.histT : agg.histV
     const labels = [t('lbl.zeroPlan'), '0%', '1–50%', '51–75%', '76–99%', '100%', t('lbl.over')]
@@ -24,15 +24,17 @@ export function FulfillHistogram({ agg }: { agg: AggResult }) {
       }],
     }
   }, [agg, c, t, isTonna])
+
   return (
     <Card title={t('chart.dist')} subtitle={`${t('lbl.fulfill')} · ${isTonna ? t('metric.tonna') : t('metric.vagon')}`}>
-      <EChart option={option} height={320} downloadName="taqsimot" />
+      <EChart option={option} height={320} downloadName="taqsimot" title={t('chart.dist')}
+        onSource={() => openDrill(t('chart.dist'), {})} />
     </Card>
   )
 }
 
 export function PlanDoneScatter({ agg }: { agg: AggResult }) {
-  const { c, t, isTonna } = useChartCtx()
+  const { c, t, isTonna, openDrill } = useChartCtx()
   const option = useMemo(() => {
     let max = 1
     const pts = agg.scatter.map((s) => {
@@ -43,7 +45,7 @@ export function PlanDoneScatter({ agg }: { agg: AggResult }) {
       return [p, d]
     })
     return {
-      tooltip: { ...tooltipBase(c), formatter: (p: any) => `${t('lbl.plan')}: ${fmtShort(p.value[0])}<br/>${t('lbl.done')}: ${fmtShort(p.value[1])}` },
+      tooltip: { ...tooltipBase(c), formatter: (p: any) => `${t('lbl.plan')}: ${fmtVal(p.value[0], isTonna ? 'tonna' : 'vagon')}<br/>${t('lbl.done')}: ${fmtVal(p.value[1], isTonna ? 'tonna' : 'vagon')}` },
       grid: gridBase({ top: 16, right: 20 }),
       xAxis: { type: 'value', name: t('lbl.plan'), nameTextStyle: { color: c.textMuted }, axisLabel: axisLabel(c, { formatter: (v: number) => fmtShort(v) }), splitLine: { lineStyle: { color: c.split } } },
       yAxis: { type: 'value', name: t('lbl.done'), nameTextStyle: { color: c.textMuted }, axisLabel: axisLabel(c, { formatter: (v: number) => fmtShort(v) }), splitLine: { lineStyle: { color: c.split } } },
@@ -56,7 +58,8 @@ export function PlanDoneScatter({ agg }: { agg: AggResult }) {
   }, [agg, c, t, isTonna])
   return (
     <Card title={t('chart.scatter')} subtitle={`${agg.scatter.length} ${t('app.of')} ${fmtInt(agg.scatterTotal)} · ${isTonna ? t('metric.tonna') : t('metric.vagon')}`}>
-      <EChart option={option} height={320} downloadName="scatter" />
+      <EChart option={option} height={320} downloadName="scatter" title={t('chart.scatter')}
+        onSource={() => openDrill(t('chart.scatter'), {})} />
     </Card>
   )
 }

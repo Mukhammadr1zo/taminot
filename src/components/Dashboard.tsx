@@ -8,6 +8,7 @@ import Header from './Header'
 import FilterBar from './FilterBar'
 import Kpi from './Kpi'
 import DataTable from './DataTable'
+import SourceModal from './SourceModal'
 import MonthlyTrend from './charts/MonthlyTrend'
 import { NomenkBar, NomenkTreemap } from './charts/NomenkCharts'
 import WagonPie from './charts/WagonPie'
@@ -81,6 +82,7 @@ export default function Dashboard({ dataset }: { dataset: Dataset }) {
           <p className="panel p-3 text-[11px] muted">ℹ️ {t('note.tonnaVagon')}</p>
         </>
       )}
+      <SourceModal dataset={dataset} />
     </div>
   )
 }

@@ -12,6 +12,7 @@ type OKey = keyof FilterOptions
 const FILTER_KEYS: { key: FKey; opt: OKey; labelKey: string; searchable?: boolean }[] = [
   { key: 'years', opt: 'year', labelKey: 'flt.year', searchable: false },
   { key: 'months', opt: 'month', labelKey: 'flt.month', searchable: false },
+  { key: 'days', opt: 'day', labelKey: 'flt.day', searchable: false },
   { key: 'plan', opt: 'plan', labelKey: 'flt.plan', searchable: false },
   { key: 'nomenk', opt: 'nomenk', labelKey: 'flt.nomenk' },
   { key: 'rju', opt: 'rju', labelKey: 'flt.rju', searchable: false },

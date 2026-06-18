@@ -3,13 +3,19 @@ import Card from '../Card'
 import EChart from '../EChart'
 import { useChartCtx } from '../../lib/useChartCtx'
 import { gm } from '../../lib/aggregate'
-import { fmtShort, fmt1, monthKey, pct } from '../../lib/format'
+import { fmtShort, fmtVal, fmt1, monthKey, pct } from '../../lib/format'
 import { tooltipBase, axisLabel, gridBase, legendBase } from '../../lib/echartsBase'
 import { PLAN_COLOR, DONE_COLOR } from '../../lib/palette'
 import type { AggResult } from '../../types'
 
 export default function MonthlyTrend({ agg }: { agg: AggResult }) {
-  const { c, t, metric, isTonna } = useChartCtx()
+  const { c, t, metric, isTonna, openDrill } = useChartCtx()
+  const onClick = (p: any) => {
+    const g = agg.byMonth[p.dataIndex]
+    if (!g) return
+    const k = g.key as number
+    openDrill(monthKey(k), { year: Math.floor(k / 100), month: k % 100 })
+  }
 
   const option = useMemo(() => {
     const rows = agg.byMonth
@@ -31,7 +37,7 @@ export default function MonthlyTrend({ agg }: { agg: AggResult }) {
         { name: t('lbl.plan'), type: 'bar', data: plan, itemStyle: { color: PLAN_COLOR, borderRadius: [3, 3, 0, 0] }, barMaxWidth: 26 },
         {
           name: t('lbl.done'), type: 'bar', data: done, itemStyle: { color: DONE_COLOR, borderRadius: [3, 3, 0, 0] }, barMaxWidth: 26,
-          label: { show: true, position: 'top', color: c.text, fontSize: 9, formatter: (p: any) => fmtShort(p.value) },
+          label: { show: true, position: 'top', color: c.text, fontSize: 9, formatter: (p: any) => fmtVal(p.value, metric) },
         },
         {
           name: t('lbl.fulfill'), type: 'line', yAxisIndex: 1, data: fp, smooth: true, symbol: 'circle', symbolSize: 6,
@@ -43,8 +49,9 @@ export default function MonthlyTrend({ agg }: { agg: AggResult }) {
   }, [agg, c, t, metric, isTonna])
 
   return (
-    <Card title={t('chart.monthly')} subtitle={`${isTonna ? t('metric.tonna') : t('metric.vagon')} · ${t('lbl.fulfill')}`} className="col-span-full">
-      <EChart option={option} height={320} downloadName="oylik-dinamika" />
+    <Card title={t('chart.monthly')} subtitle={`${isTonna ? t('metric.tonna') : t('metric.vagon')} · ${t('lbl.fulfill')} · ${t('src.hint')}`} className="col-span-full">
+      <EChart option={option} height={320} downloadName="oylik-dinamika" title={t('chart.monthly')}
+        onEvents={{ click: onClick }} onSource={() => openDrill(t('chart.monthly'), {})} />
     </Card>
   )
 }

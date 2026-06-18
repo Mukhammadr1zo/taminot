@@ -6,6 +6,7 @@ export function useChartCtx() {
   const locale = useStore((s) => s.locale)
   const theme = useStore((s) => s.theme)
   const metric = useStore((s) => s.metric)
+  const openDrill = useStore((s) => s.openDrill)
   return {
     locale,
     theme,
@@ -13,5 +14,6 @@ export function useChartCtx() {
     isTonna: metric === 'tonna',
     t: makeT(locale),
     c: themeColors(theme),
+    openDrill,
   }
 }

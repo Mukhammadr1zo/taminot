@@ -1,8 +1,20 @@
 import { create } from 'zustand'
 import type { Filters, Locale, Metric, Preset, Theme } from '../types'
 
+export type DrillKey =
+  | 'year' | 'month' | 'day' | 'plan' | 'nomenk' | 'rju' | 'rod_vag'
+  | 'parkCat' | 'park' | 'go' | 'st_from' | 'st_to' | 'status'
+export type DrillCriteria = Partial<Record<DrillKey, number>>
+export interface Drill { title: string; criteria: DrillCriteria }
+
+const DRILL_TO_FILTER: Record<DrillKey, keyof Filters> = {
+  year: 'years', month: 'months', day: 'days', plan: 'plan', nomenk: 'nomenk',
+  rju: 'rju', rod_vag: 'rod_vag', parkCat: 'parkCat', park: 'park', go: 'go',
+  st_from: 'st_from', st_to: 'st_to', status: 'status',
+}
+
 export const EMPTY_FILTERS: Filters = {
-  years: [], months: [], plan: [], nomenk: [], rju: [], rod_vag: [],
+  years: [], months: [], days: [], plan: [], nomenk: [], rju: [], rod_vag: [],
   parkCat: [], park: [], go: [], st_from: [], st_to: [], status: [],
   preset: 'none', search: '',
 }
@@ -14,6 +26,10 @@ interface State {
   theme: Theme
   metric: Metric
   filters: Filters
+  drill: Drill | null
+  openDrill: (title: string, criteria: DrillCriteria) => void
+  closeDrill: () => void
+  applyDrillAsFilter: (criteria: DrillCriteria) => void
   setLocale: (l: Locale) => void
   toggleLocale: () => void
   setTheme: (t: Theme) => void
@@ -38,6 +54,18 @@ export const useStore = create<State>((set) => ({
   theme: detectTheme(),
   metric: 'tonna',
   filters: EMPTY_FILTERS,
+  drill: null,
+  openDrill: (title, criteria) => set({ drill: { title, criteria } }),
+  closeDrill: () => set({ drill: null }),
+  applyDrillAsFilter: (criteria) =>
+    set((s) => {
+      const f: Filters = { ...s.filters }
+      for (const k of Object.keys(criteria) as DrillKey[]) {
+        const v = criteria[k]
+        if (v != null) (f[DRILL_TO_FILTER[k]] as number[]) = [v]
+      }
+      return { filters: f, drill: null }
+    }),
   setLocale: (locale) => set({ locale }),
   toggleLocale: () => set((s) => ({ locale: s.locale === 'uz' ? 'ru' : 'uz' })),
   setTheme: (theme) => set({ theme }),

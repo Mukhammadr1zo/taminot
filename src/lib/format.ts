@@ -21,6 +21,19 @@ export function fmtShort(v: number): string {
   return nf0.format(v || 0)
 }
 
+/** To'liq, aniq son (mingliklar ajratkichi bilan, yaxlitlamasdan) */
+export function fmtFull(v: number): string {
+  return nf2.format(v || 0)
+}
+
+/**
+ * Metrikaga qarab qiymat: vagon -> ANIQ butun son (yaxlitlamasdan/qisqartirmasdan),
+ * tonna -> qisqartirilgan (mln/ming).
+ */
+export function fmtVal(v: number, metric: 'tonna' | 'vagon'): string {
+  return metric === 'vagon' ? fmtInt(v) : fmtShort(v)
+}
+
 export function fmtPct(done: number, plan: number): string {
   if (!plan) return '—'
   return nf1.format((done / plan) * 100) + '%'

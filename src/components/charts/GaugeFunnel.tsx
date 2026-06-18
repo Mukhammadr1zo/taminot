@@ -2,12 +2,12 @@ import { useMemo } from 'react'
 import Card from '../Card'
 import EChart from '../EChart'
 import { useChartCtx } from '../../lib/useChartCtx'
-import { fmtShort, fmt1, pct } from '../../lib/format'
+import { fmtVal, fmt1, pct } from '../../lib/format'
 import { tooltipBase } from '../../lib/echartsBase'
 import type { AggResult } from '../../types'
 
 export function FulfillGauge({ agg }: { agg: AggResult }) {
-  const { c, t, isTonna } = useChartCtx()
+  const { c, t, isTonna, openDrill } = useChartCtx()
   const plan = isTonna ? agg.tPlan : agg.vPlan
   const done = isTonna ? agg.tDone : agg.vDone
   const val = pct(done, plan)
@@ -25,22 +25,24 @@ export function FulfillGauge({ agg }: { agg: AggResult }) {
     }],
   }), [val, c])
   return (
-    <Card title={t('chart.gauge')} subtitle={`${isTonna ? t('metric.tonna') : t('metric.vagon')} · ${fmtShort(done)} / ${fmtShort(plan)}`}>
-      <EChart option={option} height={300} downloadName="gauge" />
+    <Card title={t('chart.gauge')} subtitle={`${isTonna ? t('metric.tonna') : t('metric.vagon')} · ${fmtVal(done, isTonna ? 'tonna' : 'vagon')} / ${fmtVal(plan, isTonna ? 'tonna' : 'vagon')}`}>
+      <EChart option={option} height={300} downloadName="gauge" title={t('chart.gauge')}
+        onSource={() => openDrill(t('chart.gauge'), {})} />
     </Card>
   )
 }
 
 export function PlanFunnel({ agg }: { agg: AggResult }) {
-  const { c, t, isTonna } = useChartCtx()
+  const { c, t, isTonna, openDrill } = useChartCtx()
   const plan = isTonna ? agg.tPlan : agg.vPlan
   const done = isTonna ? agg.tDone : agg.vDone
   const undone = Math.max(0, plan - done)
+  const m = isTonna ? 'tonna' : 'vagon'
   const option = useMemo(() => ({
-    tooltip: { ...tooltipBase(c), formatter: (p: any) => `${p.name}: <b>${fmtShort(p.value)}</b>` },
+    tooltip: { ...tooltipBase(c), formatter: (p: any) => `${p.name}: <b>${fmtVal(p.value, m)}</b>` },
     series: [{
       type: 'funnel', left: 8, right: 8, top: 10, bottom: 10, minSize: '24%', sort: 'descending', gap: 3,
-      label: { show: true, position: 'inside', color: '#fff', fontSize: 12, formatter: (p: any) => `${p.name}: ${fmtShort(p.value)}` },
+      label: { show: true, position: 'inside', color: '#fff', fontSize: 12, formatter: (p: any) => `${p.name}: ${fmtVal(p.value, m)}` },
       itemStyle: { borderColor: c.tooltipBg, borderWidth: 2 },
       data: [
         { value: Math.round(plan), name: t('lbl.plan'), itemStyle: { color: '#9aa6bd' } },
@@ -48,10 +50,11 @@ export function PlanFunnel({ agg }: { agg: AggResult }) {
         { value: Math.round(undone), name: t('lbl.undone'), itemStyle: { color: '#eb3b5a' } },
       ],
     }],
-  }), [plan, done, undone, c, t])
+  }), [plan, done, undone, c, t, m])
   return (
     <Card title={t('chart.funnel')} subtitle={isTonna ? t('metric.tonna') : t('metric.vagon')}>
-      <EChart option={option} height={300} downloadName="funnel" />
+      <EChart option={option} height={300} downloadName="funnel" title={t('chart.funnel')}
+        onSource={() => openDrill(t('chart.funnel'), {})} />
     </Card>
   )
 }

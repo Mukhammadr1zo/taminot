@@ -24,12 +24,20 @@ export async function loadDataset(base = import.meta.env.BASE_URL): Promise<Data
   const stFromLower = sfDim.map((s) => s.toLowerCase())
   const stToLower = stDim.map((s) => s.toLowerCase())
 
+  // appDate ("dd-mm-yyyy") dan kun (1..31). Bo'sh bo'lsa 0.
+  const day = new Int8Array(raw.n)
+  for (let i = 0; i < raw.n; i++) {
+    const s = c.appDate[i]
+    day[i] = s && s.length >= 2 ? parseInt(s.slice(0, 2), 10) || 0 : 0
+  }
+
   return {
     n: raw.n,
     gu12: c.gu12,
     appDate: c.appDate,
     year: toI16(c.year),
     month: toI8(c.month),
+    day,
     plan: toI16(c.plan),
     go: toI32(c.go),
     nomenk: toI16(c.nomenk),

@@ -63,6 +63,7 @@ export interface Dataset {
   appDate: string[]
   year: Int16Array
   month: Int8Array
+  day: Int8Array
   plan: Int16Array
   go: Int32Array
   nomenk: Int16Array
@@ -87,6 +88,7 @@ export interface Dataset {
 export interface Filters {
   years: number[]
   months: number[]
+  days: number[]
   plan: number[]
   nomenk: number[]
   rju: number[]

@@ -20,6 +20,7 @@ export const STR: S = {
   'flt.title': { uz: 'Filtrlar', ru: 'Фильтры' },
   'flt.year': { uz: 'Yil', ru: 'Год' },
   'flt.month': { uz: 'Oy', ru: 'Месяц' },
+  'flt.day': { uz: 'Kun', ru: 'День' },
   'flt.plan': { uz: 'Reja turi', ru: 'Тип плана' },
   'flt.nomenk': { uz: 'Yuk guruhi', ru: 'Номенклатура' },
   'flt.rju': { uz: 'РЖУ (mintaqa)', ru: 'РЖУ (регион)' },
@@ -107,6 +108,17 @@ export const STR: S = {
   'tbl.park': { uz: 'Park', ru: 'Парк' },
   'tbl.status': { uz: 'Status', ru: 'Статус' },
   'tbl.appDate': { uz: 'Sana', ru: 'Дата' },
+  'tbl.name': { uz: 'Nomi', ru: 'Наименование' },
+  'tbl.fpctT': { uz: 'Bajarilish % (т)', ru: 'Исполнение % (т)' },
+  'tbl.fpctV': { uz: 'Bajarilish % (vag)', ru: 'Исполнение % (ваг)' },
+  'tbl.count': { uz: 'Arizalar', ru: 'Заявки' },
+  'tbl.from': { uz: 'Jo\'natish', ru: 'Отправление' },
+  'tbl.to': { uz: 'Manzil', ru: 'Назначение' },
+  'tbl.period': { uz: 'Davr', ru: 'Период' },
+
+  'src.title': { uz: 'Manba ma\'lumotlari', ru: 'Исходные данные' },
+  'src.filterBy': { uz: '⚲ Shu tanlov bo\'yicha filtrlash', ru: '⚲ Фильтровать по выбору' },
+  'src.hint': { uz: 'Bo\'lakni bosing — manba ma\'lumotlari', ru: 'Нажмите на сегмент — исходные данные' },
 
   'note.tonnaVagon': {
     uz: 'Eslatma: vagon bajarilishi yuqori (~90–94%), tonna bajarilishi past — chunki ko\'p arizada reja=0 yoki ortig\'i bilan bajarilgan. Ikkala metrikani ham ko\'ring.',

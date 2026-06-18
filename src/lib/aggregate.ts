@@ -38,6 +38,7 @@ function fulfillBin(plan: number, done: number): number {
 export function makePredicate(d: Dataset, f: Filters, metric: Metric): (i: number) => boolean {
   const fYear = setOrNull(f.years)
   const fMonth = setOrNull(f.months)
+  const fDay = setOrNull(f.days)
   const fPlan = setOrNull(f.plan)
   const fNomenk = setOrNull(f.nomenk)
   const fRju = setOrNull(f.rju)
@@ -55,6 +56,7 @@ export function makePredicate(d: Dataset, f: Filters, metric: Metric): (i: numbe
   return (i: number): boolean => {
     if (fYear && !fYear.has(d.year[i])) return false
     if (fMonth && !fMonth.has(d.month[i])) return false
+    if (fDay && !fDay.has(d.day[i])) return false
     if (fPlan && !fPlan.has(d.plan[i])) return false
     if (fNomenk && !fNomenk.has(d.nomenk[i])) return false
     if (fRju && !fRju.has(d.rju[i])) return false

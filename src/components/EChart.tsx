@@ -1,5 +1,6 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
+import Modal from './Modal'
 
 interface Props {
   // Dinamik quriladigan ECharts option — qat'iy literal tiplardan voz kechamiz
@@ -7,11 +8,14 @@ interface Props {
   height?: number
   onEvents?: Record<string, (params: any) => void>
   downloadName?: string
+  title?: string
+  /** ▦ tugmasi: butun grafik manba ma'lumotlarini ochish */
+  onSource?: () => void
 }
 
-/** ECharts wrapper: PNG yuklab olish tugmasi bilan. */
-export default function EChart({ option, height = 320, onEvents, downloadName = 'chart' }: Props) {
+export default function EChart({ option, height = 320, onEvents, downloadName = 'chart', title = '', onSource }: Props) {
   const ref = useRef<ReactECharts>(null)
+  const [fs, setFs] = useState(false)
 
   const download = useCallback(() => {
     const inst = ref.current?.getEchartsInstance()
@@ -23,15 +27,15 @@ export default function EChart({ option, height = 320, onEvents, downloadName = 
     a.click()
   }, [downloadName])
 
+  const btn = 'rounded-md border border-[var(--border)] bg-[var(--panel-2)] px-1.5 py-0.5 text-[10px] muted opacity-55 hover:opacity-100 hover:text-brand-500'
+
   return (
     <div className="relative" style={{ height }}>
-      <button
-        onClick={download}
-        title="PNG"
-        className="absolute right-1 top-1 z-10 rounded-md border border-[var(--border)] bg-[var(--panel-2)] px-1.5 py-0.5 text-[10px] muted opacity-60 hover:opacity-100"
-      >
-        ⤓ PNG
-      </button>
+      <div className="absolute right-1 top-1 z-10 flex gap-1">
+        {onSource && <button onClick={onSource} title="Manba ma'lumotlari / Исходные данные" className={btn}>▦</button>}
+        <button onClick={() => setFs(true)} title="Fullscreen" className={btn}>⤢</button>
+        <button onClick={download} title="PNG" className={btn}>⤓</button>
+      </div>
       <ReactECharts
         ref={ref}
         option={option}
@@ -41,6 +45,18 @@ export default function EChart({ option, height = 320, onEvents, downloadName = 
         lazyUpdate={true}
         onEvents={onEvents}
       />
+
+      <Modal open={fs} onClose={() => setFs(false)} title={title || downloadName}>
+        <div className="h-full w-full">
+          <ReactECharts
+            option={option}
+            style={{ height: '100%', width: '100%', minHeight: '70vh' }}
+            opts={{ renderer: 'canvas' }}
+            notMerge={true}
+            onEvents={onEvents}
+          />
+        </div>
+      </Modal>
     </div>
   )
 }

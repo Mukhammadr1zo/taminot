@@ -13,6 +13,7 @@ export interface FilterOptions {
   st_to: Option[]
   year: Option[]
   month: Option[]
+  day: Option[]
   rju: Option[]
   parkCat: Option[]
 }
@@ -45,6 +46,7 @@ export function buildOptions(d: Dataset, locale: Locale): FilterOptions {
   const cSt = new Map<number, number>()
   const cYear = new Map<number, number>()
   const cMonth = new Array(13).fill(0)
+  const cDay = new Array(32).fill(0)
   const cRju = new Array(8).fill(0)
   const cParkCat = new Array(4).fill(0)
 
@@ -59,6 +61,7 @@ export function buildOptions(d: Dataset, locale: Locale): FilterOptions {
     cSt.set(d.st_to[i], (cSt.get(d.st_to[i]) || 0) + 1)
     cYear.set(d.year[i], (cYear.get(d.year[i]) || 0) + 1)
     cMonth[d.month[i]]++
+    if (d.day[i] >= 1 && d.day[i] <= 31) cDay[d.day[i]]++
     cRju[d.rju[i]]++
     cParkCat[d.parkCat[i]]++
   }
@@ -82,6 +85,9 @@ export function buildOptions(d: Dataset, locale: Locale): FilterOptions {
     .sort((a, b) => a[0] - b[0])
     .map(([value, count]) => ({ value, label: String(value), count }))
 
+  const dayOpts: Option[] = []
+  for (let dd = 1; dd <= 31; dd++) if (cDay[dd] > 0) dayOpts.push({ value: dd, label: String(dd), count: cDay[dd] })
+
   const rjuOpts: Option[] = []
   for (let r = 0; r <= 7; r++) if (cRju[r] > 0) rjuOpts.push({ value: r, label: r === 0 ? '0 / —' : 'РЖУ ' + r, count: cRju[r] })
 
@@ -101,6 +107,7 @@ export function buildOptions(d: Dataset, locale: Locale): FilterOptions {
     st_to: mapOpts(dims.st_to, cSt, shortLabel),
     year: yearOpts,
     month: monthOpts,
+    day: dayOpts,
     rju: rjuOpts,
     parkCat: parkCatOpts,
   }
