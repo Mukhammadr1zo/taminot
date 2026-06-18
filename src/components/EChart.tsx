@@ -11,14 +11,29 @@ interface Props {
   title?: string
   /** ▦ tugmasi: butun grafik manba ma'lumotlarini ochish */
   onSource?: () => void
-  /** ECharts instansiyasi tayyor bo'lganda (sunburst zoom uchun) */
+  /** ECharts instansiyasi tayyor bo'lganda */
   onInit?: (inst: any) => void
+  /** O'ng tugma -> sunburst bo'lagini kattalashtirish (inline + fullscreen) */
+  contextZoom?: boolean
 }
 
-export default function EChart({ option, height = 320, onEvents, downloadName = 'chart', title = '', onSource, onInit }: Props) {
+export default function EChart({ option, height = 320, onEvents, downloadName = 'chart', title = '', onSource, onInit, contextZoom }: Props) {
   const ref = useRef<ReactECharts>(null)
   const [fs, setFs] = useState(false)
-  const hasCtx = !!onEvents?.contextmenu
+  const hasCtx = !!onEvents?.contextmenu || !!contextZoom
+
+  // Har bir instansiya (inline va fullscreen) uchun: brauzer menyusini bloklash + o'ng tugma zoom
+  const setup = useCallback((inst: any) => {
+    onInit?.(inst)
+    if (!contextZoom) return
+    try {
+      inst.getZr().on('contextmenu', (e: any) => e?.event?.preventDefault?.())
+      inst.on('contextmenu', (p: any) => {
+        const id = p?.data?.id
+        if (id) inst.dispatchAction({ type: 'sunburstRootToNode', seriesIndex: 0, targetNodeId: id })
+      })
+    } catch { /* noop */ }
+  }, [onInit, contextZoom])
 
   const download = useCallback(() => {
     const inst = ref.current?.getEchartsInstance()
@@ -47,7 +62,7 @@ export default function EChart({ option, height = 320, onEvents, downloadName = 
         notMerge={true}
         lazyUpdate={true}
         onEvents={onEvents}
-        onChartReady={onInit}
+        onChartReady={setup}
       />
 
       <Modal open={fs} onClose={() => setFs(false)} title={title || downloadName}>
@@ -58,6 +73,7 @@ export default function EChart({ option, height = 320, onEvents, downloadName = 
             opts={{ renderer: 'canvas' }}
             notMerge={true}
             onEvents={onEvents}
+            onChartReady={setup}
           />
         </div>
       </Modal>

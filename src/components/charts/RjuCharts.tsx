@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Card from '../Card'
 import EChart from '../EChart'
 import { useChartCtx } from '../../lib/useChartCtx'
@@ -50,16 +50,9 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
   const { c, t, metric, openDrill } = useChartCtx()
   const nomDim = dataset.meta.dims.nomenk
   const rodDim = dataset.meta.dims.rod_vag
-  const instRef = useRef<any>(null)
   const [rk, setRk] = useState(0)
-  // chap tugma -> manba ma'lumotlari
+  // chap tugma -> manba ma'lumotlari (o'ng tugma zoom EChart ichida)
   const onClick = (p: any) => { const cr = p?.data?.crit; if (cr) openDrill(p.data.lbl || p.name, cr) }
-  // o'ng tugma -> aynan shu bo'lakni kattalashtirish (zoom)
-  const onCtx = (p: any) => {
-    p?.event?.event?.preventDefault?.()
-    const id = p?.data?.id
-    if (id && instRef.current) instRef.current.dispatchAction({ type: 'sunburstRootToNode', seriesIndex: 0, targetNodeId: id })
-  }
 
   const option = useMemo(() => {
     // rju -> nomenk -> rodVag daraxti
@@ -129,12 +122,7 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
       right={<button onClick={() => setRk((k) => k + 1)} title={t('src.reset')} className="rounded-md border border-[var(--border)] px-2 py-1 text-[11px] muted hover:border-brand-400 hover:text-brand-500">↺</button>}
     >
       <EChart key={rk} option={option} height={400} downloadName="rju-sunburst" title={t('chart.sunburst')}
-        onEvents={{ click: onClick, contextmenu: onCtx }} onSource={() => openDrill(t('chart.sunburst'), {})}
-        onInit={(inst) => {
-          instRef.current = inst
-          // canvas ustida brauzerning standart o'ng-tugma menyusini bloklash
-          try { inst.getZr().on('contextmenu', (e: any) => { e?.event?.preventDefault?.() }) } catch { /* noop */ }
-        }} />
+        onEvents={{ click: onClick }} onSource={() => openDrill(t('chart.sunburst'), {})} contextZoom />
     </Card>
   )
 }
