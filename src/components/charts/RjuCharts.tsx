@@ -130,7 +130,11 @@ export function RjuSunburst({ agg, dataset }: { agg: AggResult; dataset: Dataset
     >
       <EChart key={rk} option={option} height={400} downloadName="rju-sunburst" title={t('chart.sunburst')}
         onEvents={{ click: onClick, contextmenu: onCtx }} onSource={() => openDrill(t('chart.sunburst'), {})}
-        onInit={(inst) => { instRef.current = inst }} />
+        onInit={(inst) => {
+          instRef.current = inst
+          // canvas ustida brauzerning standart o'ng-tugma menyusini bloklash
+          try { inst.getZr().on('contextmenu', (e: any) => { e?.event?.preventDefault?.() }) } catch { /* noop */ }
+        }} />
     </Card>
   )
 }
