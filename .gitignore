@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.log
+_*.py
+_*.json
+_*.mjs
+_*.png
+.DS_Store
+*.tsbuildinfo

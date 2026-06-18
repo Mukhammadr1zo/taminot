@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f4f6fb;
+  --panel: #ffffff;
+  --panel-2: #fbfcfe;
+  --border: #e4e8f0;
+  --text: #1a2233;
+  --text-muted: #66718a;
+  --accent: #1f5be0;
+}
+.dark {
+  --bg: #0c1018;
+  --panel: #141a26;
+  --panel-2: #1a2230;
+  --border: #263042;
+  --text: #e6ebf5;
+  --text-muted: #93a0b8;
+  --accent: #599dff;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.panel-2 { background: var(--panel-2); }
+.muted { color: var(--text-muted); }
+
+/* Scrollbar */
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background: #9aa6bd; }
+
+/* Chart card title underline accent */
+.card-title::after {
+  content: '';
+  display: block;
+  width: 34px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+  margin-top: 6px;
+}
+
+/* AG Grid theme bridges with our CSS vars */
+.ag-theme-supply {
+  --ag-background-color: var(--panel);
+  --ag-foreground-color: var(--text);
+  --ag-border-color: var(--border);
+  --ag-header-background-color: var(--panel-2);
+  --ag-odd-row-background-color: color-mix(in srgb, var(--panel) 96%, #888 4%);
+  --ag-row-hover-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  --ag-font-size: 12px;
+}
