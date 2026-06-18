@@ -1,6 +1,6 @@
 import type { Dataset, Locale } from '../types'
 import type { Option } from '../components/MultiSelect'
-import { MONTHS_RU, MONTHS_UZ } from './format'
+import { MONTHS_RU, MONTHS_UZ, shortLabel } from './format'
 
 export interface FilterOptions {
   plan: Option[]
@@ -20,6 +20,16 @@ export interface FilterOptions {
 function planLabel(s: string): string {
   if (s.startsWith('ДП')) return 'ДП (' + s.replace('ДП', '') + ')'
   return s
+}
+
+/** "2 - СПС (Operator nomi)" -> "2 · СПС: Operator nomi" (o'qilishi oson) */
+function parkOptLabel(s: string): string {
+  const m = s.match(/^(\d)\s*-\s*([\s\S]*)$/)
+  if (!m) return s
+  let rest = m[2].trim()
+  const sps = rest.match(/^СПС\s*\(([\s\S]*)\)$/)
+  if (sps) rest = 'СПС: ' + sps[1].trim()
+  return m[1] + ' · ' + rest
 }
 
 /** Dataset bo'yicha bir o'tishda barcha filtr variantlari + umumiy sonlar. */
@@ -59,9 +69,9 @@ export function buildOptions(d: Dataset, locale: Locale): FilterOptions {
       .filter((o) => o.count > 0)
       .sort((a, b) => (b.count || 0) - (a.count || 0))
 
-  const mapOpts = (labels: string[], counts: Map<number, number>): Option[] =>
+  const mapOpts = (labels: string[], counts: Map<number, number>, fmt?: (s: string) => string): Option[] =>
     Array.from(counts.entries())
-      .map(([value, count]) => ({ value, label: labels[value], count }))
+      .map(([value, count]) => ({ value, label: fmt ? fmt(labels[value]) : labels[value], count }))
       .sort((a, b) => b.count - a.count)
 
   const months = locale === 'ru' ? MONTHS_RU : MONTHS_UZ
@@ -85,10 +95,10 @@ export function buildOptions(d: Dataset, locale: Locale): FilterOptions {
     nomenk: idxOpts(dims.nomenk, cNom),
     rod_vag: idxOpts(dims.rod_vag, cRod),
     status: idxOpts(dims.status, cStatus),
-    park: mapOpts(dims.park, cPark),
-    go: mapOpts(dims.go, cGo),
-    st_from: mapOpts(dims.st_from, cSf),
-    st_to: mapOpts(dims.st_to, cSt),
+    park: mapOpts(dims.park, cPark, parkOptLabel),
+    go: mapOpts(dims.go, cGo, shortLabel),
+    st_from: mapOpts(dims.st_from, cSf, shortLabel),
+    st_to: mapOpts(dims.st_to, cSt, shortLabel),
     year: yearOpts,
     month: monthOpts,
     rju: rjuOpts,

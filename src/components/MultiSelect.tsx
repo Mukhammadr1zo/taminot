@@ -61,7 +61,7 @@ export default function MultiSelect({ label, options, selected, onChange, t, sea
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-1 w-[260px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2 shadow-2xl">
+        <div className="absolute z-30 mt-1 w-[360px] max-w-[88vw] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2 shadow-2xl">
           {searchable && (
             <input
               autoFocus
@@ -84,11 +84,11 @@ export default function MultiSelect({ label, options, selected, onChange, t, sea
             {shown.map((o) => (
               <label
                 key={o.value}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 text-xs hover:bg-[var(--panel-2)]"
+                className="flex cursor-pointer items-start gap-2 rounded-md px-1.5 py-1 text-xs hover:bg-[var(--panel-2)]"
               >
-                <input type="checkbox" checked={selSet.has(o.value)} onChange={() => toggle(o.value)} className="accent-brand-600" />
-                <span className="flex-1 truncate" title={o.label}>{o.label}</span>
-                {o.count != null && <span className="muted text-[10px]">{o.count}</span>}
+                <input type="checkbox" checked={selSet.has(o.value)} onChange={() => toggle(o.value)} className="mt-[3px] accent-brand-600" />
+                <span className="flex-1 break-words leading-snug" title={o.label}>{o.label}</span>
+                {o.count != null && <span className="muted mt-[2px] shrink-0 text-[10px]">{o.count}</span>}
               </label>
             ))}
             {filtered.length > cap && (
